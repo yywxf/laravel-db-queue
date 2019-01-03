@@ -1,0 +1,32 @@
+{
+    "name": "yywxf/laravel-db-queue",
+    "description": "Dashboard for Laravel queues.",
+    "keywords": [
+        "laravel",
+        "queue"
+    ],
+    "type": "library",
+    "license": "MIT'",
+    "authors": [
+        {
+            "name": "yywxf",
+            "email": "87423932@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yywxf\\Queue\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Yywxf\\Queue\\QueueServiceProvider"
+            ]
+        }
+    }
+}
