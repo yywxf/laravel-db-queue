@@ -99,12 +99,16 @@
                     </table>
                 </div>
             </div>
+
+            <div class="row mt-3">
+                <div id="paginationBox" class="col">
+
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="row mt-3">
-
-    </div>
 </div>
 
 {{--failedDetail--}}
@@ -135,9 +139,8 @@
 <script>
     $(function () {
         var layerIndex;
-        // 总览
-        $('#btn_statistics').click(function () {
-            $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+
+        function getStatistics() {
             $.ajax({
                 url: '/api/queue/statistics',
                 type: 'get',
@@ -147,12 +150,45 @@
                     $('#job_failed').text(data.failed_count);
                     $('#job_total').text(data.total);
 
+                    $('#paginationBox').hide();
+                },
+                'beforeSend': function () {
+                    layerIndex = layer.load(0, {
+                        shade: [0.1, '#fff'] //0.1透明度的白色背景
+                    });
+                },
+                'error': function () {
+                    layer.msg('请求出错！');
+                },
+                'complete': function () {
+                    layer.close(layerIndex);
+                },
+            });
+        }
+
+        getStatistics();
+
+        // 分页
+        $('#paginationBox').on('click', '.pagination li a', function () {
+            getFailed($(this).attr('data-page'));
+        }).on('change', '#selectPerPage', function () {
+            getFailed(1);
+        });
+
+        // 队列积压总览
+        $('#btn_statistics').click(function () {
+            $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+            getStatistics();
+            $.ajax({
+                url: '/api/queue/statistics2',
+                type: 'get',
+                success: function (data) {
                     $('#card_header').html('队列积压总览');
                     var headHtml = '<th scope="col">#</th>\n' +
                         '<th scope="col">队列</th>\n' +
                         '<th scope="col">数量</th>';
                     $("#dataTable thead tr").html(headHtml);
-                    var len = data.job_nums.length;
+                    var len = data.length;
                     var strHtml = '';
                     var bodyEle = $("#dataTable tbody");
                     bodyEle.html("");
@@ -160,7 +196,7 @@
                         layer.msg('无数据');
                     } else {
                         var i = 0;
-                        $.each(data.job_nums, function (k, v) {
+                        $.each(data, function (k, v) {
                             i++;
                             strHtml = '<tr>' +
                                 '<th scope="row">' + i + '</th>' +
@@ -185,21 +221,24 @@
             });
         });
 
-        // 失败的任务
-        $('#btn_failed').click(function () {
-            $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+        function getFailed(page = 1) {
             $.ajax({
                 url: '/api/queue/failed',
                 type: 'get',
+                data: {
+                    page: page,
+                    perPage: $('#selectPerPage').val(),
+                },
                 success: function (data) {
-                    $('#card_header').html('失败的任务');
+                    $('#card_header').html('失败的任务<button type="button" title="全部重试" class="float-right btn btn-sm btn-light text-success" onclick="doJob(this,\'retry\',\'all\')"><i class="fas fa-sync-alt"></i></button>');
                     var headHtml = '<th scope="col">#</th>\n' +
                         '<th scope="col">队列</th>\n' +
                         '<th scope="col">异常</th>\n' +
                         '<th scope="col">失败时间</th>\n' +
                         '<th scope="col">操作</th>';
                     $("#dataTable thead tr").html(headHtml);
-                    var len = data.data.length;
+                    var realdata = data.data.data;
+                    var len = realdata.length;
                     var strHtml = '';
                     var bodyEle = $("#dataTable tbody");
                     bodyEle.html("");
@@ -209,15 +248,17 @@
                         for (var i = 0; i < len; i++) {
                             strHtml = '<tr>' +
                                 '<th scope="row">' + (i + 1) + '</th>' +
-                                '<td><a href="#failedDetail" onclick="getJob(\'' + data.data[i].id + '\')">' + data.data[i].queue + '</a></td>' +
+                                '<td><a href="#failedDetail" onclick="getJob(\'' + realdata[i].id + '\')">' + realdata[i].queue + '</a></td>' +
                                 // '<td>' + data.data[i].payload + '</td>' +
-                                '<td><div class="text-truncate" style="max-width: 450px;">' + data.data[i].exception + '</div></td>' +
-                                '<td>' + data.data[i].failed_at + '</td>' +
-                                '<td><button type="button" class="btn btn-sm btn-light text-success" onclick="doJob(this,\'retry\',\'' + data.data[i].id + '\')"><i class="fas fa-sync-alt"></i></button></td>' +
+                                '<td><div class="text-truncate" style="max-width: 450px;">' + realdata[i].exception + '</div></td>' +
+                                '<td>' + realdata[i].failed_at + '</td>' +
+                                '<td style="width: 92px;"><button type="button" class="btn btn-sm btn-light text-success" onclick="doJob(this,\'retry\',\'' + realdata[i].id + '\')"><i class="fas fa-sync-alt"></i></button> ' +
+                                '<button type="button" class="btn btn-sm btn-light text-danger" onclick="doJob(this,\'forget\',\'' + realdata[i].id + '\')"><i class="fas fa-trash-alt"></i></button></td>' +
                                 '</tr>';
                             bodyEle.append(strHtml);
                         }
                     }
+                    $('#paginationBox').html(data.links).show();
                 },
                 'beforeSend': function () {
                     layerIndex = layer.load(0, {
@@ -231,11 +272,19 @@
                     layer.close(layerIndex);
                 },
             });
+        }
+
+        // 失败的任务
+        $('#btn_failed').click(function () {
+            $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+            getStatistics();
+            getFailed();
         });
 
         // 积压的任务
         $('#btn_working').click(function () {
             $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+            getStatistics();
             $.ajax({
                 url: '/api/queue/working',
                 type: 'get',
@@ -282,6 +331,7 @@
         // 队列管理
         $('#btn_manage').click(function () {
             $(this).addClass('active').parent().siblings().find('a').removeClass('active');
+            getStatistics();
             $.ajax({
                 url: '/api/queue/status',
                 type: 'get',

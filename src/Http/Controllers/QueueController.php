@@ -23,8 +23,6 @@ class QueueController extends Controller
         // 等待执行任务总数，延迟执行任务
         $wait_count = Jobs::query()->where('available_at', '>', time())->count();
         $work_count = Jobs::query()->where('available_at', '<=', time())->count();
-        $job_nums = Jobs::query()->selectRaw('queue,count(*) as count')->where('available_at', '<=', time())->groupBy('queue')->pluck('count', 'queue');
-        // dump($job_nums);
         // 失败任务总数
         $failed_count = FailedJobs::query()->count();
 
@@ -35,8 +33,17 @@ class QueueController extends Controller
             'work_count'   => $work_count,
             'failed_count' => $failed_count,
             'total'        => $job_count + $failed_count,
-            'job_nums'     => $job_nums,
         ];
+    }
+
+    public function statistics2()
+    {
+        return Jobs::query()
+                   ->selectRaw('queue,count(*) as count')
+                   ->where('available_at', '<=', time())
+                   ->groupBy('queue')
+                   ->pluck('count', 'queue')
+            ;
     }
 
     public function status()
@@ -107,7 +114,11 @@ class QueueController extends Controller
         if (isset($request->id)) {
             return FailedJobs::query()->find($request->id);
         } else {
-            return FailedJobs::query()->paginate(10);
+            $failed = FailedJobs::query()->orderByDesc('failed_at')->paginate($request->perPage ?? 10);
+            return [
+                'data' => $failed,
+                'links' => $failed->links('queue::dashboard.page-bs4', ['perPages' => [10, 20, 50, 100]])->toHtml(),
+            ];
         }
     }
 
