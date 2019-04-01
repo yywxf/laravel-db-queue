@@ -95,7 +95,7 @@ class QueueController extends Controller
     // retry forget flush
     public function doJob(Request $request)
     {
-        $queue = $request->input('queue', 'all');
+        $queue = (array) $request->input('queue', 'all');
         $action = $request->action;
         \Log::info($queue);
         if (!in_array($action, ['retry', 'forget', 'flush'])) {
