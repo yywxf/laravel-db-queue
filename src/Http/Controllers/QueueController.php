@@ -3,10 +3,10 @@
 namespace Yywxf\Queue\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\FailedJobs;
-use App\Models\Jobs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Yywxf\Queue\Models\FailedJobs;
+use Yywxf\Queue\Models\Jobs;
 
 class QueueController extends Controller
 {

@@ -27,9 +27,9 @@ class QueueServiceProvider extends ServiceProvider
             // __DIR__ . '/views' => resource_path('views'),
         ]);
 
-        $this->publishes([
-            DBQUEUE_PATH . '/src/Models' => app_path('Models'),
-        ]);
+        // $this->publishes([
+        //     DBQUEUE_PATH . '/src/Models' => app_path('Models'),
+        // ]);
 
         $this->publishes([
             DBQUEUE_PATH . '/resources/assets/fontawesome' => public_path('fontawesome'),

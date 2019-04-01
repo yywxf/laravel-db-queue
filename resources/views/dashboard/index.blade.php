@@ -172,7 +172,7 @@
         $('#paginationBox').on('click', '.pagination li a', function () {
             getFailed($(this).attr('data-page'));
         }).on('change', '#selectPerPage', function () {
-            getFailed(1);
+            getFailed();
         });
 
         // 队列积压总览

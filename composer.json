@@ -10,7 +10,7 @@
     "authors": [
         {
             "name": "yywxf",
-            "email": "87423932@qq.com"
+            "email": "fangzenghua@qq.com"
         }
     ],
     "minimum-stability": "dev",
@@ -28,5 +28,9 @@
                 "Yywxf\\Queue\\QueueServiceProvider"
             ]
         }
-    }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "prefer-stable": true
 }

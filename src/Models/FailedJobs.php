@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Yywxf\Queue\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
