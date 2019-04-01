@@ -40,6 +40,14 @@ class QueueServiceProvider extends ServiceProvider
         ], 'bootstrap4');
 
         $this->publishes([
+            DBQUEUE_PATH . '/resources/assets/layer' => public_path('layer'),
+        ], 'layer');
+
+        $this->publishes([
+            DBQUEUE_PATH . '/resources/assets/js' => public_path('js'),
+        ], 'js');
+
+        $this->publishes([
             DBQUEUE_PATH . '/resources/assets/img' => public_path('img'),
         ]);
     }
